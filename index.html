@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XVerse: Consistent Multi-Subject Control of Identity and Semantic Attributes via DiT Modulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        :root {
+            --primary-color: #3366cc;
+            --secondary-color: #5e72e4;
+            --light-bg: #f0f7ff;
+            --lighter-bg: #e6f3ff;
+            --border-color: #ddd;
+            --text-color: #333;
+            --text-light: #666;
+            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --card-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #ffffff;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--primary-color);
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .image-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .image-caption {
+            margin-top: 0.8rem;
+            font-style: italic;
+            color: var(--text-light);
+        }
+
+        hr {
+            height: 3px;
+            border-width: 0;
+            background-color: var(--secondary-color);
+            margin: 2rem 0;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            color: white;
+            margin: 0.3rem;
+        }
+
+        .badge-red { background-color: #e53e3e; }
+        .badge-green { background-color: #38a169; }
+        .badge-blue { background-color: #3182ce; }
+        .badge-orange { background-color: #dd6b20; }
+
+        .author-container {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .author-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .author {
+            font-weight: 500;
+        }
+
+        .author-note {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin: 0.5rem 0;
+        }
+
+        .institution {
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .method-components {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .method-card {
+            box-sizing: border-box;
+            width: calc(50% - 10px);
+            background-color: var(--light-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .method-card {
+                width: 100%;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .code-block {
+            font-family: monospace;
+            background-color: var(--lighter-bg);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .highlight {
+            background-color: var(--lighter-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 10px;
+            margin: 15px 0;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .citation-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .citation-card {
+            width: 90%;
+            max-width: 800px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .citation-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .citation-title {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .citation-content {
+            font-family: monospace;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .citation-link {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .citation-link a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .feature-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px; /* Reduced from 20px */
+            margin-bottom: 10px; /* Added to reduce overall section height */
+        }
+
+        .feature-grid > div {
+            margin-bottom: 0; /* Reduced spacing between elements */
+        }
+
+        .feature-card {
+            flex-basis: 48%;
+            background-color: var(--light-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        @media (max-width: 768px) {
+            .feature-card {
+                flex-basis: 100%;
+            }
+        }
+
+        .feature-icon {
+            font-size: 1.5em;
+            color: var(--primary-color);
+        }
+
+        .feature-note {
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .list-unstyled {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .list-item-indent {
+            padding-left: 20px;
+            margin-bottom: 5px; /* Reduced from default */
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+        }
+        
+        /* Dataset Characteristics section - reduced spacing */
+        .dataset-characteristics h3 {
+            margin-bottom: 0.5rem; /* Reduced from default */
+        }
+        
+        .dataset-characteristics ul {
+            margin-bottom: 0.5rem; /* Reduced from default */
+        }
+        
+        /* Image Carousel Styles */
+        .carousel {
+            position: relative;
+            width: 100%;
+            max-width: 900px; /* Accommodates longer images */
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .carousel-container {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 100%;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 0; /* Remove border radius from inner images */
+            box-shadow: none; /* Remove shadow from inner images */
+        }
+
+        .carousel-controls {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            transform: translateY(-50%);
+        }
+
+        .carousel-button {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            z-index: 10;
+            transition: background-color 0.3s;
+        }
+
+        .carousel-button:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .carousel-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .carousel-indicator.active {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>XVerse: Consistent Multi-Subject Control of Identity and Semantic Attributes via DiT Modulation</h1>
+            
+            <div class="badge-container">
+                <a href="https://arxiv.org/abs/2506.21416" class="badge badge-red">Paper</a>
+                <a href="https://github.com/bytedance/XVerse" class="badge badge-green">GitHub</a>
+                <a href="https://github.com/bytedance/XVerse/tree/main/assets" class="badge badge-blue">Dataset</a>
+                <a href="https://huggingface.co/ByteDance/XVerse" class="badge badge-orange">Models</a>
+            </div>
+            
+            <div class="author-container">
+                <div class="author-list">
+                    <span class="author">Bowen Chen*</span> •
+                    <span class="author">Mengyi Zhao*</span> •
+                    <span class="author">Haomiao Sun*</span> •
+                    <span class="author">Li Chen*†</span> •
+                    <span class="author">Xu Wang</span> •
+                    <span class="author">Kang Du</span> •
+                    <span class="author">Xinglong Wu</span>
+                </div>
+                <div class="author-note">*Equal Contribution &nbsp;&nbsp; †Project Lead</div>
+                <div class="institution">Intelligent Creation Team, ByteDance</div>
+            </div>
+        </header>
+
+        <div class="image-container">
+            <img src="first_page.png" alt="XVerse Demonstration" width="100%">
+            <p class="image-caption"><strong>Figure 1:</strong> <em>XVerse's capability in single/multi-subject personalization and semantic attribute control (pose, style, lighting). Input conditions are highlighted with red dots.</em></p>
+        </div>
+
+        <h2>📝 Abstract</h2>
+        <p>In the field of text-to-image generation, achieving fine-grained control over <strong>multiple subject identities</strong> and <strong>semantic attributes</strong> (such as pose, style, lighting) while maintaining high quality and consistency has been a significant challenge. Existing methods often introduce artifacts or suffer from attribute entanglement issues, especially when handling multiple subjects.</p>
+        
+        <p>To overcome these challenges, we propose <strong>XVerse</strong>, a novel multi-subject control generation model. XVerse enables precise and independent control of specific subjects without interfering with image latent variables or features by transforming reference images into token-specific text flow modulation offsets. As a result, XVerse provides:</p>
+        
+        <ul>
+            <li>✅ High-fidelity, editable multi-subject image synthesis</li>
+            <li>✅ Powerful control over individual subject characteristics</li>
+            <li>✅ Fine-grained manipulation of semantic attributes</li>
+        </ul>
+        
+        <p>This advancement significantly improves the capability for personalization and complex scene generation.</p>
+
+        <hr>
+
+        <h2>🔍 Method</h2>
+        <p>The core of XVerse is to achieve consistent control over multiple subject identities and semantic attributes by learning offsets in the text flow modulation mechanism of Diffusion Transformers (DiT). Our method consists of four key components:</p>
+        
+        <div class="image-container">
+            <img src="structure.png" alt="XVerse Framework" width="100%">
+            <p class="image-caption"><strong>Figure 2:</strong> <em>XVerse framework overview. Reference images are processed through the T-Mod resampler and subsequently injected into each token modulation adapter.</em></p>
+        </div>
+
+        <div class="method-components">
+            <!-- First component -->
+            <div class="method-card">
+                <h3><span style="color: #3366cc;">1.</span> T-Mod Adapter</h3>
+                <ul class="list-unstyled">
+                    <li style="margin-bottom: 10px;">🔹 Employs a <strong>perceiver resampler</strong> as the text flow modulation adapter</li>
+                    <li style="margin-bottom: 10px;">🔹 Combines <strong>CLIP-encoded image features</strong> with text prompt features to generate cross offsets</li>
+                    <li style="margin-bottom: 10px;">🔹 Implements <strong>token-specific text flow modulation</strong>, enabling the model to precisely control multiple subjects</li>
+                </ul>
+                <div class="highlight">
+                    T-Mod(I_ref, T) → Δ_shared, {Δ_block_i}
+                </div>
+                <p style="font-size: 0.9em; margin-top: 10px;">Where <code>I_ref</code> is the reference image, <code>T</code> is the text prompt, <code>Δ_shared</code> is the shared offset, and <code>Δ_block_i</code> is the specific offset for each DiT block.</p>
+            </div>
+            
+            <!-- Second component -->
+            <div class="method-card">
+                <h3><span style="color: #3366cc;">2.</span> Text Flow Modulation Mechanism</h3>
+                <ul class="list-unstyled">
+                    <li style="margin-bottom: 10px;">🔹 Transforms reference images into text flow modulation offsets</li>
+                    <li style="margin-bottom: 10px;">🔹 Adds offsets to the corresponding token embeddings injected into the model</li>
+                    <li style="margin-bottom: 10px;">🔹 Adjusts original modulation parameters (scaling and shift parameters) to achieve precise control</li>
+                </ul>
+                <blockquote class="highlight">
+                    This mechanism allows XVerse to make fine adjustments to specific subjects while maintaining the overall structure of the image.
+                </blockquote>
+            </div>
+            
+            <!-- Third component -->
+            <div class="method-card">
+                <h3><span style="color: #3366cc;">3.</span> VAE-Encoded Image Feature Module</h3>
+                <ul class="list-unstyled">
+                    <li style="margin-bottom: 10px;">🔹 Incorporates VAE-encoded image features as an auxiliary module into a single block of FLUX</li>
+                    <li style="margin-bottom: 10px;">🔹 Enhances detail preservation capability, making generated images more realistic</li>
+                    <li style="margin-bottom: 10px;">🔹 Minimizes the occurrence of artifacts and distortions</li>
+                </ul>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span class="feature-icon">🔍</span>
+                    <p class="feature-note">Enhanced detail preservation</p>
+                </div>
+            </div>
+            
+            <!-- Fourth component -->
+            <div class="method-card">
+                <h3><span style="color: #3366cc;">4.</span> Regularization Techniques</h3>
+                <p>To further improve generation quality and consistency, XVerse introduces two key regularization techniques:</p>
+                <div class="highlight" style="margin: 15px 0;">
+                    <p><strong>Region Preservation Loss:</strong> Enforces consistency in non-modulated regions by randomly preserving modulation injection on one side</p>
+                </div>
+                <div class="highlight" style="margin: 15px 0;">
+                    <p><strong>Text-Image Attention Loss:</strong> Aligns the cross-attention dynamics between the modulated model and the reference T2I branch</p>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2>📊 Training Data</h2>
+        <p>XVerse's training employs a carefully designed data construction process:</p>
+        
+        <div class="image-container">
+            <img src="data_construction.png" alt="Training Data Construction Process" width="90%">
+            <p class="image-caption"><strong>Figure 4:</strong> <em>Training data construction process. Using Florence2 for image description and phrase localization, and SAM2 for face extraction.</em></p>
+        </div>
+        
+        <ul>
+            <li>🔸 Utilizes <strong>Florence2</strong> for image description and phrase localization</li>
+            <li>🔸 Employs <strong>SAM2</strong> for precise face extraction</li>
+            <li>🔸 Constructs a high-quality training dataset containing multi-subject control</li>
+        </ul>
+
+        <hr>
+
+        <h2>🧪 XVerseBench</h2>
+        <p>To comprehensively evaluate multi-subject control image generation capabilities, we propose the XVerseBench benchmark:</p>
+        
+        <div class="image-container">
+            <img src="XVerseBench.png" alt="XVerseBench Data Distribution" width="90%">
+            <p class="image-caption"><strong>Figure 5:</strong> <em>XVerseBench data distribution and sample examples</em></p>
+        </div>
+        
+        <!-- Dataset Characteristics section with reduced spacing -->
+        <div class="dataset-characteristics">
+            <h3>Dataset Characteristics</h3>
+            <div class="feature-grid">
+                <div>
+                    <ul class="list-unstyled">
+                        <li><strong>Rich and Diverse Subjects</strong>:</li>
+                        <li class="list-item-indent">👤 20 different human identities</li>
+                        <li class="list-item-indent">🏺 74 unique objects</li>
+                        <li class="list-item-indent">🐾 45 different animal species/individuals</li>
+                        <li class="list-item-indent">📝 A total of 300 unique test prompts</li>
+                    </ul>
+                </div>
+                <div>
+                    <ul class="list-unstyled">
+                        <li><strong>Test Scenarios</strong>:</li>
+                        <li class="list-item-indent">Single-subject control scenarios</li>
+                        <li class="list-item-indent">Dual-subject control scenarios</li>
+                        <li class="list-item-indent">Triple-subject control scenarios</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <h3>Evaluation Methods</h3>
+        <p>XVerseBench employs multi-dimensional evaluation metrics:</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align:center;">Evaluation Metric</th>
+                    <th style="text-align:left;">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align:center;"><strong>DPG Score</strong></td>
+                    <td>Evaluates the model's editing capability</td>
+                </tr>
+                <tr>
+                    <td style="text-align:center;"><strong>Face ID Similarity</strong></td>
+                    <td>Evaluates the model's ability to maintain human identity</td>
+                </tr>
+                <tr>
+                    <td style="text-align:center;"><strong>DINOv2 Similarity</strong></td>
+                    <td>Evaluates the model's ability to maintain object features</td>
+                </tr>
+                <tr>
+                    <td style="text-align:center;"><strong>Aesthetic Score</strong></td>
+                    <td>Evaluates the aesthetic quality of generated images</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2>📈 Experimental Results</h2>
+        <h3>Comparison with Existing Methods</h3>
+        <p>XVerse significantly outperforms existing methods on XVerseBench:</p>
+        
+        <div class="image-container">
+            <img src="Quality_Compare.png" alt="Comparison with Existing Methods" width="100%">
+            <p class="image-caption"><strong>Figure 6:</strong> <em>Qualitative comparison of XVerse with other methods on XVerseBench</em></p>
+        </div>
+        
+        <div class="image-container">
+            <img src="Quant_Compare.png" alt="Ablation Study Results" width="90%">
+            <p class="image-caption"><strong>Figure 7:</strong> <em>Demonstration of the effects of text flow modulation resampler and VAE-encoded image features</em></p>
+        </div>
+
+        <hr>
+
+        <h2>👤 Single-Subject Control Demonstrations</h2>
+        <div style="text-align: center;">
+            <h3><em>Precise Control of Individual Subject Identity and Attributes</em></h3>
+        </div>
+        
+        <p>XVerse demonstrates exceptional capability in controlling single-subject identity and semantic attributes. By leveraging the text flow modulation mechanism, our model achieves:</p>
+        
+        <ul>
+            <li>🔸 <strong>High fidelity identity preservation</strong> across diverse scenarios and contexts</li>
+            <li>🔸 <strong>Fine-grained attribute control</strong> while maintaining identity consistency</li>
+        </ul>
+        
+        <!-- Single-Subject Control Carousel -->
+        <div class="image-container">
+            <div class="carousel" id="single-subject-carousel">
+                <div class="carousel-container">
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_13.png" alt="Single-Subject Control Example 1">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_20.png" alt="Single-Subject Control Example 2">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_3.png" alt="Single-Subject Control Example 3">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_30.png" alt="Single-Subject Control Example 4">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_32.png" alt="Single-Subject Control Example 5">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_35.png" alt="Single-Subject Control Example 6">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_47.png" alt="Single-Subject Control Example 7">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_76.png" alt="Single-Subject Control Example 8">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_81.png" alt="Single-Subject Control Example 9">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_single/sample_9.png" alt="Single-Subject Control Example 10">
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-button prev-button">❮</button>
+                    <button class="carousel-button next-button">❯</button>
+                </div>
+                <div class="carousel-indicators"></div>
+            </div>
+            <p class="image-caption"><strong>Figure 9:</strong> <em>XVerse's single-subject control capabilities, demonstrating precise identity preservation while manipulating various attributes such as pose, clothing, and environmental context.</em></p>
+        </div>
+        
+        <!-- <div class="feature-grid">
+            <div class="feature-card">
+                <h3><span style="color: #3366cc;">🎯</span> Identity Consistency</h3>
+                <p>XVerse maintains consistent facial features, body proportions, and distinctive characteristics of the subject across various generated scenarios.</p>
+                <blockquote class="highlight">
+                    The token-specific modulation approach ensures that identity information is precisely controlled without affecting other image elements.
+                </blockquote>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span style="color: #3366cc;">🔄</span> Attribute Flexibility</h3>
+                <p>While maintaining identity, XVerse allows flexible control over attributes like pose, expression, clothing, and environmental context.</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span class="feature-icon">✨</span>
+                    <p class="feature-note">Create infinite variations while preserving core identity</p>
+                </div>
+            </div>
+        </div> -->
+
+        <hr>
+
+        <h2>👥 Multi-Subject Control Demonstrations</h2>
+        <div style="text-align: center;">
+            <h3><em>Consistent Control of Multiple Subjects in Complex Scenes</em></h3>
+        </div>
+        
+        <p>One of XVerse's most significant innovations is its ability to maintain consistency across multiple subjects in a single generated image:</p>
+        
+        <ul>
+            <li>🔸 <strong>Simultaneous control</strong> of multiple subject identities in one scene</li>
+            <li>🔸 <strong>Independent attribute manipulation</strong> for each subject</li>
+            <li>🔸 <strong>Reduced interference</strong> between different subjects compared to existing methods</li>
+            <li>🔸 <strong>Complex scene composition</strong> with multiple controlled elements</li>
+        </ul>
+        
+        <!-- Multi-Subject Control Carousel -->
+        <div class="image-container">
+            <div class="carousel" id="multi-subject-carousel">
+                <div class="carousel-container">
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_14.png" alt="Multi-Subject Control Example 1">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_198.png" alt="Multi-Subject Control Example 2">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_21.png" alt="Multi-Subject Control Example 3">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_25.png" alt="Multi-Subject Control Example 4">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_26.png" alt="Multi-Subject Control Example 5">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_113.png" alt="Multi-Subject Control Example 6">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_27.png" alt="Multi-Subject Control Example 7">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_47.png" alt="Multi-Subject Control Example 8">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_91.png" alt="Multi-Subject Control Example 9">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="selected_multi/sample_96.png" alt="Multi-Subject Control Example 10">
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-button prev-button">❮</button>
+                    <button class="carousel-button next-button">❯</button>
+                </div>
+                <div class="carousel-indicators"></div>
+            </div>
+            <p class="image-caption"><strong>Figure 10:</strong> <em>XVerse's multi-subject control capabilities, showing consistent identity preservation across multiple subjects while maintaining natural interaction and scene coherence.</em></p>
+        </div>
+
+        <!-- NEW SECTION: Semantic Attributes Control Demonstrations -->
+        <h2>✨ Semantic Attributes Control Demonstrations</h2>
+        <div style="text-align: center;">
+            <h3><em>Fine-Grained Control of Lighting, Pose, and Style</em></h3>
+        </div>
+        
+        <p>Beyond subject identity control, XVerse excels in manipulating semantic attributes such as lighting, pose, and style. This capability enables unprecedented creative control:</p>
+        
+        <!-- Semantic Attributes Control Carousel -->
+
+        <div class="image-container">
+            <img src="SementicControl.png" alt="Semantic Attributes Control Example">
+            <p class="image-caption"><strong>Figure 11:</strong> <em>XVerse's semantic attributes control capabilities, demonstrating fine - grained manipulation of lighting, pose, and style.</em></p>
+        </div>
+        
+        <hr>
+
+        <h2>📄 Citation</h2>
+        <p>If you use XVerse in your research, please cite our paper:</p>
+        
+        <div class="citation-container">
+            <div class="citation-card">
+                <div class="citation-header">
+                    <span style="font-size: 1.5em; margin-right: 10px;">📝</span>
+                    <h3 class="citation-title">BibTeX Citation</h3>
+                </div>
+                <div class="citation-content">
+                    @article{chen2025xverse,<br>
+                    &nbsp;&nbsp;title={XVerse: Consistent Multi-Subject Control of Identity and Semantic Attributes via DiT Modulation},<br>
+                    &nbsp;&nbsp;author={Chen, Bowen and Zhao, Mengyi and Sun, Haomiao and Chen, Li and Wang, Xu and Du, Kang and Wu, Xinglong},<br>
+                    &nbsp;&nbsp;journal={arXiv preprint arXiv:2506.21416},<br>
+                    &nbsp;&nbsp;year={2025}<br>
+                    }
+                </div>
+                <div class="citation-link">
+                    <a href="https://arxiv.org/abs/2506.21416">View on arXiv →</a>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2>🙏 Acknowledgements</h2>
+        <p>We thank all researchers and engineers who contributed to this project. This research was supported by the ByteDance Intelligent Creation Team.</p>
+
+        <footer>
+            <p>© 2024 ByteDance Intelligent Creation Team. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Carousel functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all carousels on the page
+            const carousels = document.querySelectorAll('.carousel');
+            
+            carousels.forEach(carousel => {
+                const container = carousel.querySelector('.carousel-container');
+                const slides = carousel.querySelectorAll('.carousel-slide');
+                const nextButton = carousel.querySelector('.next-button');
+                const prevButton = carousel.querySelector('.prev-button');
+                const indicators = carousel.querySelector('.carousel-indicators');
+                
+                let currentIndex = 0;
+                let interval;
+                const slideCount = slides.length;
+                
+                // Create indicators
+                for (let i = 0; i < slideCount; i++) {
+                    const indicator = document.createElement('div');
+                    indicator.classList.add('carousel-indicator');
+                    if (i === 0) indicator.classList.add('active');
+                    
+                    indicator.addEventListener('click', () => {
+                        goToSlide(i);
+                        resetInterval();
+                    });
+                    
+                    indicators.appendChild(indicator);
+                }
+                
+                // Update indicators
+                function updateIndicators() {
+                    const allIndicators = indicators.querySelectorAll('.carousel-indicator');
+                    allIndicators.forEach((ind, index) => {
+                        if (index === currentIndex) {
+                            ind.classList.add('active');
+                        } else {
+                            ind.classList.remove('active');
+                        }
+                    });
+                }
+                
+                // Go to specific slide
+                function goToSlide(index) {
+                    currentIndex = index;
+                    container.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    updateIndicators();
+                }
+                
+                // Next slide
+                function nextSlide() {
+                    currentIndex = (currentIndex + 1) % slideCount;
+                    goToSlide(currentIndex);
+                }
+                
+                // Previous slide
+                function prevSlide() {
+                    currentIndex = (currentIndex - 1 + slideCount) % slideCount;
+                    goToSlide(currentIndex);
+                }
+                
+                // Reset interval
+                function resetInterval() {
+                    clearInterval(interval);
+                    interval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+                }
+                
+                // Event listeners
+                nextButton.addEventListener('click', () => {
+                    nextSlide();
+                    resetInterval();
+                });
+                
+                prevButton.addEventListener('click', () => {
+                    prevSlide();
+                    resetInterval();
+                });
+                
+                // Touch events for mobile
+                let touchStartX = 0;
+                let touchEndX = 0;
+                
+                carousel.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                });
+                
+                carousel.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                });
+                
+                function handleSwipe() {
+                    if (touchStartX - touchEndX > 50) {
+                        // Swipe left
+                        nextSlide();
+                        resetInterval();
+                    } else if (touchEndX - touchStartX > 50) {
+                        // Swipe right
+                        prevSlide();
+                        resetInterval();
+                    }
+                }
+                
+                // Start autoplay
+                resetInterval();
+            });
+        });
+    </script>
+</body>
+</html>
