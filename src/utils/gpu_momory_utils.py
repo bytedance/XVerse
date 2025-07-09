@@ -2,12 +2,13 @@ import torch
 from diffusers import AutoencoderKL, FluxTransformer2DModel
 import time
 
-threshold_mem = 9 * 1024 * 1024 * 1024 #9G
 class ForwardHookManager:
-    def __init__(self):
+    def __init__(self, threshold_mem = 8 * 1024 * 1024 * 1024, use_lower_vram = False):
         self._registered_models = []
         self._origin_states = {}
         self._load_order = {}
+        self.threshold_mem = threshold_mem
+        self.use_lower_vram = use_lower_vram
 
     def _get_available_memory(self):
         total = torch.cuda.get_device_properties(0).total_memory
@@ -15,10 +16,9 @@ class ForwardHookManager:
         return total - reserved
 
     def _free_up_memory(self, required_mem, cache_model = None):
-        # print("len(self._load_order):", len(self._load_order),  [model.__class__.__name__ for model in self._load_order.keys()])
-        # print("Available memory:", self._get_available_memory())
-        # print("required_mem:", required_mem)
-        sorted_items = sorted(self._load_order.items(), key=lambda x: x[1])
+
+        sorted_items = sorted(self._load_order.items(),
+                             key=lambda x: (x[1]['count'], x[1]['timestamp']))
         for model, value in sorted_items:
             if self._origin_states[model]['in_cuda']:
                 if model != cache_model:
@@ -27,10 +27,10 @@ class ForwardHookManager:
                     del self._load_order[model]
                 torch.cuda.empty_cache()
                 if cache_model == None:
-                    if self._get_available_memory() - threshold_mem >= required_mem:
+                    if self._get_available_memory() - self.threshold_mem >= required_mem:
                         return True
                 else:
-                    if self._get_available_memory() >= threshold_mem:
+                    if self._get_available_memory() >= self.threshold_mem:
                         return True
         return False
     
@@ -58,20 +58,30 @@ class ForwardHookManager:
             required_mem = self._origin_states[model]['cuda_memory']
             # print(f"required_mem: {required_mem}, available_mem: {available_mem}")
             if origin_device.type != 'cuda':
-                if available_mem - threshold_mem < required_mem:
+                if available_mem - self.threshold_mem < required_mem:
                     self._free_up_memory(required_mem)
                         # raise RuntimeError(f"Insufficient GPU memory. Required: {required_mem}, Available: {self._get_available_memory()}")
-                model.to('cuda')
+                
                 if model not in self._load_order:
-                    self._load_order[model] = 3
+                    self._load_order[model] = {
+                        'count': 3,
+                        'timestamp': time.time(),
+                    }
             else:
-                if available_mem < threshold_mem:
+                if available_mem < self.threshold_mem:
                     self._free_up_memory(required_mem, model)
                         # raise RuntimeError(f"Insufficient GPU memory. Required: {required_mem}, Available: {self._get_available_memory()}")
-            self._load_order[model] += 1
+            model.to('cuda')
+            self._load_order[model]['count'] += 1
+            self._load_order[model]['timestamp'] = time.time()
+
             for other_model in self._load_order:
+                # if other_model != model:
+                #     self._load_order[other_model] = max(self._load_order[other_model], 0)
                 if other_model != model:
-                    self._load_order[other_model] = max(self._load_order[other_model], 0)
+                    self._load_order[other_model]['count'] = max(
+                        self._load_order[other_model]['count'] - 1, 0
+                    )
             self._origin_states[model]['in_cuda'] = True
         return model
 
@@ -101,24 +111,32 @@ class ForwardHookManager:
                         required_mem = self._origin_states[model]['cuda_memory']
                         origin_device = model.device if hasattr(model, 'device') else self._origin_states[model]['origin_device']
                         if origin_device.type != 'cuda':
-                            if available_mem - threshold_mem < required_mem:
+                            if available_mem - self.threshold_mem < required_mem:
                                 self._free_up_memory(required_mem)
-                            model.to('cuda')
+                            # model.to('cuda')
                             
                             if model not in self._load_order:
-                                self._load_order[model] = 3
+                                self._load_order[model] = {
+                                    'count': 3,
+                                    'timestamp': time.time(),
+                                }
                         else:
-                            if self._get_available_memory() < threshold_mem:
+                            if self._get_available_memory() < self.threshold_mem:
                                 self._free_up_memory(required_mem, model)
-                        self._origin_states[model]['in_cuda'] = True
-                        self._load_order[model] += 1
+                        
                         for other_model in self._load_order:
                             if other_model != model:
-                                self._load_order[other_model] = max(self._load_order[other_model], 0)
+                                self._load_order[other_model]['count'] = max(
+                                    self._load_order[other_model]['count'] - 1, 0
+                                )
                         args = tuple(arg.cuda() if isinstance(arg, torch.Tensor) and arg.device != 'cuda' else arg     
                                    for arg in args)
                         kwargs = {k: v.cuda() if isinstance(v, torch.Tensor) and v.device != 'cuda' else v 
                                 for k, v in kwargs.items()}
+                        model.to('cuda')
+                        self._origin_states[model]['in_cuda'] = True
+                        self._load_order[model]['count'] += 1
+                        self._load_order[model]['timestamp'] = time.time()
 
                     result = self._origin_states[model]['origin_forward'](*args, **kwargs)
                     return result
@@ -126,13 +144,29 @@ class ForwardHookManager:
                 model.forward = custom_forward
                 self._registered_models.append(model)
         return model
+    def replace_module_children(self, model, deep = 0):
+        if deep >= 0:
+            for name, child in model.named_children():
+                if isinstance(child, torch.nn.ModuleList):
+                    for index_block, block in enumerate(child):
+                        new_block = self._register(block)
+                        child[index_block] = new_block
+                        self.replace_module_children(new_block, 1)
+                    setattr(model, name, child)
+                elif isinstance(child, torch.nn.Module):
+                    new_child = self._register(child)
+                    setattr(model, name, new_child)
+                    self.replace_module_children(new_child, deep - 1)
 
     def register(self, model):
         if isinstance(model, torch.nn.Module):
             if isinstance(model, AutoencoderKL):
                 model.encoder = self._register(model.encoder)
                 model.decoder = self._register(model.decoder)
-            model = self._register(model)
+            elif isinstance(model, FluxTransformer2DModel) and self.use_lower_vram:
+                self.replace_module_children(model)
+            else:
+                model = self._register(model)
         return model
 
     def revert(self):

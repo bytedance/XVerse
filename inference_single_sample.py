@@ -182,7 +182,8 @@ def main():
     parser.add_argument('--idips', nargs='+', type=lambda x: (str(x).lower() == 'true'), help='List of ID/IP flags')
     parser.add_argument('--save_path', type=str, default="generated_image.png", help='Path to save the generated image')
     parser.add_argument('--num_images', type=int, default=4, help='Number of images to generate')
-    parser.add_argument('--use_low_vram', type=bool, default=False, help='Use low vram')
+    parser.add_argument('--use_low_vram', type=bool, default=False, help='Use low vram in 24G gpu memory')
+    parser.add_argument('--use_lower_vram', type=bool, default=False, help='Use lower vram in 16G gpu memory')
 
     args = parser.parse_args()
 
@@ -196,7 +197,7 @@ def main():
         raise ValueError("Number of images and ID/IP flags must be the same")
 
     dtype = torch.bfloat16
-    if args.use_low_vram:
+    if args.use_low_vram or args.use_lower_vram:
         init_device = torch.device("cpu")
     else:
         init_device = torch.device("cuda")
@@ -240,8 +241,12 @@ def main():
     # 准备 indexs
     indexs = list(range(len(args.images))) if args.images else []
 
-    if init_device.type == 'cpu' and args.use_low_vram == True:
-        forward_hook_manager = ForwardHookManager()
+    if init_device.type == 'cpu' and (args.use_low_vram or args.use_lower_vram):
+        if args.use_lower_vram:
+            threshold_mem = 2 * 1024 * 1024 * 1024 
+        elif args.use_low_vram:
+            threshold_mem = 8 * 1024 * 1024 * 1024 
+        forward_hook_manager = ForwardHookManager(threshold_mem, args.use_lower_vram)
         model.pipe.transformer = forward_hook_manager.register(model.pipe.transformer)
         model.pipe.text_encoder = forward_hook_manager.register(model.pipe.text_encoder)
         model.pipe.vae = forward_hook_manager.register(model.pipe.vae)

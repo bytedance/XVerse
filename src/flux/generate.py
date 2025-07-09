@@ -427,7 +427,7 @@ def generate(
                 if vae_skip_iter_t:
                     print(f"timestep:{t}, skip vae:{vae_skip_iter_t}")               
 
-            if forward_hook_manager is not None:
+            if forward_hook_manager is not None and forward_hook_manager.use_lower_vram is False:
                 pipeline.transformer = forward_hook_manager.model_to_cuda(pipeline.transformer)
             noise_pred = transformer_forward(
                 pipeline.transformer,
