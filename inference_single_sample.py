@@ -259,28 +259,27 @@ def main():
         model.pipe=model.pipe.to("cuda")
         for i in range(len(model.pipe.modulation_adapters)):
             model.pipe.modulation_adapters[i] = model.pipe.modulation_adapters[i].to("cuda")
-    
-    for i in range(10):
-        image = generate_image(
-            model,
-            args.prompt,
-            args.cond_size,
-            args.target_height,
-            args.target_width,
-            args.seed,
-            vae_skip_iter,
-            control_weight_lambda,
-            args.latent_lora_scale,
-            latent_sblora_scale_str,
-            vae_lora_scale_str,
-            indexs,
-            args.num_images,  # 传递 num_images 参数
-            do_device,
-            forward_hook_manager,
-            *args.images,
-            *args.captions,
-            *args.idips
-        )
+
+    image = generate_image(
+        model,
+        args.prompt,
+        args.cond_size,
+        args.target_height,
+        args.target_width,
+        args.seed,
+        vae_skip_iter,
+        control_weight_lambda,
+        args.latent_lora_scale,
+        latent_sblora_scale_str,
+        vae_lora_scale_str,
+        indexs,
+        args.num_images,  # 传递 num_images 参数
+        do_device,
+        forward_hook_manager,
+        *args.images,
+        *args.captions,
+        *args.idips
+    )
 
     # 使用命令行传入的路径保存生成的图像
     image.save(args.save_path)
