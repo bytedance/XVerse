@@ -187,7 +187,7 @@ def main():
 
     args = parser.parse_args()
 
-    # size = 16 * 1024 * 1024 * 1024 // 4     
+    # size = 24 * 1024 * 1024 * 1024 // 4     
     # big_tensor = torch.randn(size, dtype=torch.float32, device='cuda')
 
     # 验证输入参数
