@@ -40,7 +40,7 @@ config_path = "train/config/XVerse_config_demo.yaml"
 store_attn_map = False
 
 def generate_image(model, prompt, cond_size, target_height, target_width, seed, vae_skip_iter, control_weight_lambda, latent_dblora_scale_str, latent_sblora_scale_str, vae_lora_scale_str,
-                   indexs, num_images, device, forward_hook_manager, *args):  # 新增 num_images 参数
+                   indexs, num_images, device, forward_hook_manager, num_inference_steps, *args):  # 新增 num_images 参数
     torch.cuda.empty_cache()
     # 使用传入的 num_images
     # num_images = 4
@@ -156,6 +156,7 @@ def generate_image(model, prompt, cond_size, target_height, target_width, seed, 
         condition_sblora_scale=vae_lora_scale_str,
         device=device,
         forward_hook_manager=forward_hook_manager,
+        num_inference_steps=num_inference_steps,  # 新增参数
     )
     if isinstance(image, list):
         num_cols = 2
@@ -183,6 +184,8 @@ def main():
     parser.add_argument('--save_path', type=str, default="generated_image.png", help='Path to save the generated image')
     parser.add_argument('--num_images', type=int, default=4, help='Number of images to generate')
     parser.add_argument('--use_low_vram', type=bool, default=False, help='Use low vram')
+    parser.add_argument('--num_inference_steps', type=int, default=28, help='Number of inference steps')
+    parser.add_argument('--dit_quant', type=str, default="int8-quanto", help='Config for dit-quant')
 
     args = parser.parse_args()
 
@@ -204,7 +207,7 @@ def main():
     # init_device = torch.device("cuda")
 
     config = config_train = get_train_config(config_path)
-    config["model"]["dit_quant"] = "int8-quanto"
+    config["model"]["dit_quant"] = args.dit_quant
     config["model"]["use_dit_lora"] = False
     model = CustomFluxPipeline(
         config, init_device, torch_dtype=dtype,
@@ -255,27 +258,27 @@ def main():
         for i in range(len(model.pipe.modulation_adapters)):
             model.pipe.modulation_adapters[i] = model.pipe.modulation_adapters[i].to("cuda")
     
-    for i in range(10):
-        image = generate_image(
-            model,
-            args.prompt,
-            args.cond_size,
-            args.target_height,
-            args.target_width,
-            args.seed,
-            vae_skip_iter,
-            control_weight_lambda,
-            args.latent_lora_scale,
-            latent_sblora_scale_str,
-            vae_lora_scale_str,
-            indexs,
-            args.num_images,  # 传递 num_images 参数
-            do_device,
-            forward_hook_manager,
-            *args.images,
-            *args.captions,
-            *args.idips
-        )
+    image = generate_image(
+        model,
+        args.prompt,
+        args.cond_size,
+        args.target_height,
+        args.target_width,
+        args.seed,
+        vae_skip_iter,
+        control_weight_lambda,
+        args.latent_lora_scale,
+        latent_sblora_scale_str,
+        vae_lora_scale_str,
+        indexs,
+        args.num_images,  # 传递 num_images 参数
+        do_device,
+        forward_hook_manager,
+        args.num_inference_steps,  # 新增参数
+        *args.images,
+        *args.captions,
+        *args.idips
+    )
 
     # 使用命令行传入的路径保存生成的图像
     image.save(args.save_path)

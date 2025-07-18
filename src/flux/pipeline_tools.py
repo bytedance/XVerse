@@ -30,6 +30,7 @@ from diffusers.models.transformers.transformer_flux import (
     unscale_lora_layers,
     logger,
 )
+from diffusers import FluxTransformer2DModel, GGUFQuantizationConfig, BitsAndBytesConfig
 from torchvision.transforms import ToPILImage
 from peft.tuners.tuners_utils import BaseTunerLayer
 from optimum.quanto import (
@@ -41,6 +42,17 @@ from src.adapters.mod_adapters import CLIPModAdapter
 from peft import LoraConfig, set_peft_model_state_dict
 from transformers import CLIPProcessor, CLIPModel, CLIPVisionModelWithProjection, CLIPVisionModel
 
+from safetensors.torch import load_file
+
+from diffusers.loaders.single_file_utils import (
+    create_diffusers_clip_model_from_ldm,
+    create_diffusers_t5_model_from_checkpoint,
+    convert_ldm_vae_checkpoint,
+)
+
+from transformers import T5EncoderModel, CLIPTextModel, AutoConfig, T5Config, AutoTokenizer, AutoModelForSeq2SeqLM
+
+import json
 
 def encode_vae_images(pipeline: FluxPipeline, images: Tensor):
     images = pipeline.image_processor.preprocess(images)
@@ -448,7 +460,7 @@ def save_cond2latent(attn_maps, base_dir='attn_maps'):
         os.makedirs(batch_dir, exist_ok=True)
         save_cond2latent_image(attn_map, batch_dir, to_pil)
 
-def quantization(pipe, qtype):
+def quantization(pipe, qtype, t5_only=False):
     if qtype != "None" and qtype != "":
         if qtype.endswith("quanto"):
             if qtype == "int2-quanto":
@@ -475,8 +487,9 @@ def quantization(pipe, qtype):
             ]
             try:
                 print("[Quantization] Start freezing")
-                quantize(pipe.transformer, weights=quant_level, **extra_quanto_args)
-                freeze(pipe.transformer)
+                if not t5_only:
+                    quantize(pipe.transformer, weights=quant_level, **extra_quanto_args)
+                    freeze(pipe.transformer)
                 quantize(pipe.text_encoder_2, weights=quant_level, **extra_quanto_args)
                 freeze(pipe.text_encoder_2)
                 torch.cuda.empty_cache()
@@ -512,20 +525,43 @@ class CustomFluxPipeline:
         ckpt_root_condition=None,
         torch_dtype=torch.bfloat16,
     ):
-        model_path = os.getenv("FLUX_MODEL_PATH", "black-forest-labs/FLUX.1-dev")
-        print("[CustomFluxPipeline] Loading FLUX Pipeline")
-        self.pipe = FluxPipeline.from_pretrained(model_path, torch_dtype=torch_dtype)
-
-        # self.pipe.vae = self.pipe.vae.to(device, dtype=torch_dtype)
-        # self.pipe.transformer = self.pipe.transformer.to(device, dtype=torch_dtype)
 
         self.config = config
         self.device = device
         self.dtype = torch_dtype
-        start = time.time()
-        if config["model"].get("dit_quant", "None") != "None":
-            quantization(self.pipe, config["model"]["dit_quant"])
-        print(f"Quantization time: {time.time() - start}")
+
+        model_path = os.getenv("FLUX_MODEL_PATH", "black-forest-labs/FLUX.1-dev")
+
+        dit_quant = config["model"].get("dit_quant", "None")
+
+        if dit_quant == "GGUF":
+            # T5_path = os.getenv("FLUX_T5XXL_PATH")
+            # tokenizer = AutoTokenizer.from_pretrained(T5_path, gguf_file="t5-v1_1-xxl-encoder-Q5_K_S.gguf")
+            # text_encoder = T5EncoderModel.from_pretrained(
+            #     T5_path, gguf_file="t5-v1_1-xxl-encoder-Q3_K_S.gguf", 
+            #     torch_dtype=torch.bfloat16
+            # )
+            transformer_path = os.getenv("FLUX_TRANSFORMERS_PATH")
+            transformer = FluxTransformer2DModel.from_single_file(
+                transformer_path,
+                quantization_config=GGUFQuantizationConfig(compute_dtype=torch.bfloat16),
+                torch_dtype=torch.bfloat16,
+            )
+            self.pipe = FluxPipeline.from_pretrained(
+                model_path,
+                transformer=transformer,
+                # tokenizer_2=tokenizer,
+                # text_encoder_2=text_encoder,
+                torch_dtype=torch.bfloat16,
+            )
+            quantization(self.pipe, "int8-quanto", t5_only=True)
+        else:
+            print("[CustomFluxPipeline] Loading FLUX Pipeline")
+            self.pipe = FluxPipeline.from_pretrained(model_path, torch_dtype=torch_dtype)
+            if dit_quant != "None":
+                start = time.time()
+                quantization(self.pipe, dit_quant)
+                print(f"Quantization time: {time.time() - start}")
 
         self.pipe = self.pipe.to(device)
 

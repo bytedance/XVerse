@@ -39,6 +39,8 @@ parser = argparse.ArgumentParser(description='Run Gradio demo with configurable 
 parser.add_argument('--use_low_vram', type=bool, default=False, help='Use low vram')
 parser.add_argument('--server_name', type=str, default='0.0.0.0', help='Server name to bind to')
 parser.add_argument('--server_port', type=int, default=7680, help='Server port to listen on')
+parser.add_argument('--num_inference_steps', type=int, default=28, help='Number of inference steps')
+parser.add_argument('--dit_quant', type=str, default="int8-quanto", help='Config for dit-quant')
 args = parser.parse_args()
 
 use_low_vram = args.use_low_vram
@@ -55,7 +57,7 @@ do_device = torch.device("cuda")
 config_path = "train/config/XVerse_config_demo.yaml"
 
 config = config_train = get_train_config(config_path)
-config["model"]["dit_quant"] = "int8-quanto"
+config["model"]["dit_quant"] = args.dit_quant
 config["model"]["use_dit_lora"] = False
 model = CustomFluxPipeline(
     config, init_device, torch_dtype=dtype,
@@ -112,10 +114,6 @@ def clear_images():
     return [None, ]*num_inputs
 
 def det_seg_img(image, label):
-    # if forward_hook_manager is not None:
-    #     detector.detector.florence2_model = forward_hook_manager.model_to_cuda(detector.detector.florence2_model)
-    #     detector.detector.sam2_predictor = forward_hook_manager.model_to_cuda(detector.detector.sam2_predictor)
-
     if isinstance(image, str):
         image = Image.open(image).convert("RGB")
     instance_result_dict = detector.get_multiple_instances(image, label, min_size=image.size[0]//20)
@@ -124,14 +122,9 @@ def det_seg_img(image, label):
     return ins
 
 def crop_face_img(image):
-
-    # if forward_hook_manager is not None:
-    #     face_model.detector = forward_hook_manager.model_to_cuda(face_model.detector)
-
     if isinstance(image, str):
         image = Image.open(image).convert("RGB")
 
-    # image = resize_keep_aspect_ratio(image, 1024)
     image = pad_to_square(image).resize((2048, 2048))
     
     face_bbox = face_model.detect(

@@ -534,6 +534,7 @@ def generate_from_test_sample(
     use_idip = False,
     device = torch.device('cuda'),
     forward_hook_manager=None,
+    num_inference_steps: int = 28,
     **kargs
 ):
     target_size = config["train"]["dataset"]["val_target_size"]
@@ -714,7 +715,7 @@ def generate_from_test_sample(
             return delta_emb, delta_emb_pblock, delta_emb_mask, \
                 text_cond_mask, delta_start_ends, condition_latents, condition_ids
     
-    num_inference_steps = 28 # FIXME: harcoded here
+    # num_inference_steps = 28 # FIXME: harcoded here
     num_channels_latents = pipe.transformer.config.in_channels // 4
 
     # set timesteps
@@ -835,6 +836,7 @@ def generate_from_test_sample(
             idips=idips if use_idip else None,
             device=device,
             forward_hook_manager=forward_hook_manager,
+            num_inference_steps=num_inference_steps,
             **kargs,
         ).images[0]
 

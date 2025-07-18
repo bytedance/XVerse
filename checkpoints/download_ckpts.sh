@@ -32,4 +32,13 @@ huggingface-cli download xingjianleng/mplug_visual-question-answering_coco_large
 echo "Downloading XVerse checkpoint..."
 huggingface-cli download ByteDance/XVerse --local-dir ./XVerse
 
+echo "Downloading FLUX.1-schnell checkpoint..."
+huggingface-cli download black-forest-labs/FLUX.1-schnell --local-dir ./FLUX.1-schnell
+
+echo "Downloading diffusers/FLUX.1-dev-bnb-4bit checkpoint..."
+huggingface-cli download diffusers/FLUX.1-dev-bnb-4bit --local-dir ./FLUX.1-dev-bnb-4bit
+
+echo "Downloading city96/FLUX.1-dev-gguf checkpoint..."
+huggingface-cli download city96/FLUX.1-dev-gguf --local-dir ./FLUX.1-dev-gguf
+
 echo "All checkpoints are downloaded successfully."

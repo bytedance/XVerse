@@ -117,9 +117,23 @@ python inference_single_sample.py --prompt "ENT1, and ENT2 standing together in 
 ```
 
 ## ⚡️ Low-VRAM Inference
+
+### Offload Modules to CPU
+
 - During inference with a single sample, you can enable low VRAM mode by adding the parameter `--use_low_vram True`. 
 - Additionally, you can also enable low VRAM mode by adding the parameter `--use_low_vram True` in `run_demo.py` to run XVerse smoothly on a 24GB VRAM GPU.
 - This allows you to perform inference with up to two conditional images on a GPU equipped with 24GB of VRAM. We will further support lower memory inference through quantitative models.
+
+### Quantized Diffusion Models
+
+- You can download the quantized model from [here](https://huggingface.co/collections/diffusers/flux-quantized-checkpoints-682c951aebd378a2462984a0) into the checkpoints folder‌. With the bnb-nf4 quantized model, you can perform inference with one condition using 32GB of VRAM, and conduct three-condition-based inference with 24GB of VRAM. You need to modify the `FLUX_MODEL_PATH` environment variable and add the parameter `--dit_quant None`.
+- You can also download the GGUF quantized model from [here](https://huggingface.co/city96/FLUX.1-dev-gguf) into the checkpoints folder‌. With the GGUF quantized model, you can carry out inference with two conditions using 32GB of VRAM, and perform four-condition-based inference with 24GB of VRAM. You can run the inference using the following commands:
+```bash
+export FLUX_TRANSFORMERS_PATH="./checkpoints/FLUX.1-dev-gguf/flux1-dev-Q3_K_S.gguf"
+export FLUX_MODEL_PATH="./checkpoints/FLUX.1-dev"
+python inference_single_sample.py --prompt "ENT1, and ENT2 standing together in a park." --seed 42 --cond_size 256 --target_height 768 --target_width 768 --weight_id 3 --weight_ip 5 --latent_lora_scale 0.7 --vae_lora_scale 1.2 --vae_skip_iter_s1 0.05 --vae_skip_iter_s2 0.8 --images "sample/woman.jpg" "sample/girl.jpg" --captions "a woman" "a girl" --idips true true --save_path "generated_image_2-GGUF.png" --num_images 1 --dit_quant GGUF
+```
+**Note**: Quantized models may degrade the model's performance to some extent, and parameters like `weight_id`, `weight_ip`, and `lora_scale` may need to be re-adjusted.
 
 ## Inference with XVerseBench
 
@@ -142,8 +156,8 @@ The script will automatically evaluate the model on the XVerseBench dataset and 
 - [x] Release inference code for single sample.
 - [x] Support inference in consumer-grade GPUs.
 - [x] Release huggingface space demo.
+- [ ] Support model quantization.
 - [ ] Release Benchmark Leaderboard.
-- [ ] Support Nunchaku model quantization.
 - [ ] Release ComfyUI implementation.
 
 ## License
