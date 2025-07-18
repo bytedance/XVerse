@@ -128,8 +128,8 @@ python inference_single_sample.py --prompt "ENT1, and ENT2 standing together in 
 
 ### Quantized Diffusion Models
 
-- You can download the quantized model from [here](https://huggingface.co/collections/diffusers/flux-quantized-checkpoints-682c951aebd378a2462984a0) into the checkpoints folder‌. With the bnb-nf4 quantized model, you can perform inference with one condition using 32GB of VRAM, and conduct three-condition-based inference with 24GB of VRAM. You need to modify the `FLUX_MODEL_PATH` environment variable and add the parameter `--dit_quant None`.
-- You can also download the GGUF quantized model from [here](https://huggingface.co/city96/FLUX.1-dev-gguf) into the checkpoints folder‌. With the GGUF quantized model, you can carry out inference with two conditions using 32GB of VRAM, and perform four-condition-based inference with 24GB of VRAM. You can run the inference using the following commands:
+- You can download the quantized model from [here](https://huggingface.co/collections/diffusers/flux-quantized-checkpoints-682c951aebd378a2462984a0) into the checkpoints folder‌. Using the bnb-nf4 quantized model, you can run inference with a single condition on 32GB of VRAM, or perform inference with three conditions on 24GB of VRAM by enabling the CPU offloading feature. You need to modify the `FLUX_MODEL_PATH` environment variable and add the parameter `--dit_quant None`.
+- You can also download the GGUF quantized model from [here](https://huggingface.co/city96/FLUX.1-dev-gguf) into the checkpoints folder‌. Using this GGUF quantized model, you can perform two-condition inference with 32GB of video memory, or achieve four-condition-based inference in a 24GB video memory environment by enabling the CPU offloading feature. You can run the inference using the following commands:
 ```bash
 export FLUX_TRANSFORMERS_PATH="./checkpoints/FLUX.1-dev-gguf/flux1-dev-Q3_K_S.gguf"
 export FLUX_MODEL_PATH="./checkpoints/FLUX.1-dev"
