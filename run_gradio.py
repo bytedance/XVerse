@@ -36,19 +36,21 @@ import argparse  # 导入 argparse 模块
 
 # 解析命令行参数
 parser = argparse.ArgumentParser(description='Run Gradio demo with configurable parameters')
-parser.add_argument('--use_low_vram', type=bool, default=False, help='Use low vram')
 parser.add_argument('--server_name', type=str, default='0.0.0.0', help='Server name to bind to')
 parser.add_argument('--server_port', type=int, default=7680, help='Server port to listen on')
 parser.add_argument('--num_inference_steps', type=int, default=28, help='Number of inference steps')
 parser.add_argument('--dit_quant', type=str, default="int8-quanto", help='Config for dit-quant')
+parser.add_argument('--use_low_vram', type=bool, default=False, help='Use low vram in 24G gpu memory')
+parser.add_argument('--use_lower_vram', type=bool, default=False, help='Use lower vram in 16G gpu memory')
 args = parser.parse_args()
 
 use_low_vram = args.use_low_vram
+use_lower_vram = args.use_lower_vram
 
 dtype = torch.bfloat16
 num_inputs = 6 #if not use_low_vram else 2
 
-if use_low_vram:
+if use_low_vram or use_lower_vram:
     init_device = torch.device("cpu")
 else:
     init_device = torch.device("cuda")
@@ -85,26 +87,33 @@ model.add_modulation_adapter(modulation_adapter)
 if config["model"]["use_dit_lora"]:
     load_dit_lora(model, model.pipe, config, dtype, init_device, f"{ckpt_root}", is_training=False)
 
-if init_device.type == 'cpu' and use_low_vram == True:
-    forward_hook_manager = ForwardHookManager()
-    model.pipe.transformer = forward_hook_manager.register(model.pipe.transformer)
-    model.pipe.text_encoder = forward_hook_manager.register(model.pipe.text_encoder)
-    model.pipe.vae = forward_hook_manager.register(model.pipe.vae)
-    model.pipe.text_encoder_2 = forward_hook_manager.register(model.pipe.text_encoder_2)
-    model.pipe.clip_model = forward_hook_manager.register(model.pipe.clip_model)
-    for i in range(len(model.pipe.modulation_adapters)):
-        model.pipe.modulation_adapters[i] = forward_hook_manager.register(model.pipe.modulation_adapters[i])
-    forward_hook_manager.register(face_model.detector)
-    forward_hook_manager.register(face_model.model)
-    forward_hook_manager.register(detector.detector.florence2_model)
-    forward_hook_manager.register(detector.detector.sam2_predictor.model)
-else:
-    forward_hook_manager = None
-    model.pipe=model.pipe.to("cuda")
-    face_model.detector.to("cuda")
-    face_model.model.to("cuda")
-    detector.detector.florence2_model.to("cuda")
-    detector.detector.sam2_predictor.model.to("cuda")
+if init_device.type == 'cpu' and (args.use_low_vram or args.use_lower_vram):
+        if args.use_lower_vram:
+            threshold_mem = 2 * 1024 * 1024 * 1024 
+        elif args.use_low_vram:
+            threshold_mem = 8 * 1024 * 1024 * 1024 
+        forward_hook_manager = ForwardHookManager(threshold_mem, args.use_lower_vram)
+        model.pipe.transformer = forward_hook_manager.register(model.pipe.transformer)
+        model.pipe.text_encoder = forward_hook_manager.register(model.pipe.text_encoder)
+        model.pipe.vae = forward_hook_manager.register(model.pipe.vae)
+        model.pipe.text_encoder_2 = forward_hook_manager.register(model.pipe.text_encoder_2)
+        model.pipe.clip_model = forward_hook_manager.register(model.pipe.clip_model)
+        for i in range(len(model.pipe.modulation_adapters)):
+            model.pipe.modulation_adapters[i] = forward_hook_manager.register(model.pipe.modulation_adapters[i])
+        forward_hook_manager.register(face_model.detector)
+        forward_hook_manager.register(face_model.model)
+        forward_hook_manager.register(detector.detector.florence2_model)
+        forward_hook_manager.register(detector.detector.sam2_predictor.model)
+    else:
+        forward_hook_manager = None
+        model.pipe=model.pipe.to("cuda")
+        for i in range(len(model.pipe.modulation_adapters)):
+            model.pipe.modulation_adapters[i] = model.pipe.modulation_adapters[i].to("cuda")
+        model.pipe=model.pipe.to("cuda")
+        face_model.detector.to("cuda")
+        face_model.model.to("cuda")
+        detector.detector.florence2_model.to("cuda")
+        detector.detector.sam2_predictor.model.to("cuda")
 
 vae_skip_iter = None
 attn_skip_iter = 0
@@ -335,6 +344,7 @@ def generate_image(
             condition_sblora_scale=vae_lora_scale,
             device=do_device,
             forward_hook_manager=forward_hook_manager,
+            num_inference_steps=args.num_inference_steps,
         )
         if isinstance(image, list):
             num_cols = 2

@@ -19,6 +19,7 @@
 </p>
 
 ## 🔥 News
+- **2025.7.18**: Supports quantized diffusion models, and add group offload to run the XVerse model in 16GB VRAM.
 - **2025.7.10**: Release huggingface space demo.
 - **2025.7.8**: Supports low VRAM inference, can run the XVerse model in 24GB VRAM.
 - **2025.6.26**: The code has been released!
@@ -120,9 +121,10 @@ python inference_single_sample.py --prompt "ENT1, and ENT2 standing together in 
 
 ### Offload Modules to CPU
 
-- During inference with a single sample, you can enable low VRAM mode by adding the parameter `--use_low_vram True`. 
-- Additionally, you can also enable low VRAM mode by adding the parameter `--use_low_vram True` in `run_demo.py` to run XVerse smoothly on a 24GB VRAM GPU.
-- This allows you to perform inference with up to two conditional images on a GPU equipped with 24GB of VRAM. We will further support lower memory inference through quantitative models.
+- During inference with a single sample or running gradio demo, you can enable low VRAM mode by adding the parameter `--use_low_vram True` or `--use_lower_vram True`. 
+- `use_low_vram` allows you to perform inference with up to two conditional images on a GPU equipped with 24GB of VRAM.
+- `use_lower_vram` allows you to perform inference with up to three conditional images on a GPU equipped with 16GB of VRAM. 
+- Note that CPU offload significantly reduces inference speed and should only be enabled when necessary.
 
 ### Quantized Diffusion Models
 
@@ -156,7 +158,7 @@ The script will automatically evaluate the model on the XVerseBench dataset and 
 - [x] Release inference code for single sample.
 - [x] Support inference in consumer-grade GPUs.
 - [x] Release huggingface space demo.
-- [ ] Support model quantization.
+- [x] Support quantized diffusion models.
 - [ ] Release Benchmark Leaderboard.
 - [ ] Release ComfyUI implementation.
 
