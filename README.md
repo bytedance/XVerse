@@ -76,7 +76,7 @@ export DINO_MODEL_PATH="./checkpoints/dino-vits16"
 
 To run the interactive Gradio demo locally, execute the following command:
 ```bash
-python run_demo.py
+python run_gradio.py
 ```
 
 #### Input Settings Explained
