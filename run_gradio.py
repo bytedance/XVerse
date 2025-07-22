@@ -88,32 +88,32 @@ if config["model"]["use_dit_lora"]:
     load_dit_lora(model, model.pipe, config, dtype, init_device, f"{ckpt_root}", is_training=False)
 
 if init_device.type == 'cpu' and (args.use_low_vram or args.use_lower_vram):
-        if args.use_lower_vram:
-            threshold_mem = 2 * 1024 * 1024 * 1024 
-        elif args.use_low_vram:
-            threshold_mem = 8 * 1024 * 1024 * 1024 
-        forward_hook_manager = ForwardHookManager(threshold_mem, args.use_lower_vram)
-        model.pipe.transformer = forward_hook_manager.register(model.pipe.transformer)
-        model.pipe.text_encoder = forward_hook_manager.register(model.pipe.text_encoder)
-        model.pipe.vae = forward_hook_manager.register(model.pipe.vae)
-        model.pipe.text_encoder_2 = forward_hook_manager.register(model.pipe.text_encoder_2)
-        model.pipe.clip_model = forward_hook_manager.register(model.pipe.clip_model)
-        for i in range(len(model.pipe.modulation_adapters)):
-            model.pipe.modulation_adapters[i] = forward_hook_manager.register(model.pipe.modulation_adapters[i])
-        forward_hook_manager.register(face_model.detector)
-        forward_hook_manager.register(face_model.model)
-        forward_hook_manager.register(detector.detector.florence2_model)
-        forward_hook_manager.register(detector.detector.sam2_predictor.model)
-    else:
-        forward_hook_manager = None
-        model.pipe=model.pipe.to("cuda")
-        for i in range(len(model.pipe.modulation_adapters)):
-            model.pipe.modulation_adapters[i] = model.pipe.modulation_adapters[i].to("cuda")
-        model.pipe=model.pipe.to("cuda")
-        face_model.detector.to("cuda")
-        face_model.model.to("cuda")
-        detector.detector.florence2_model.to("cuda")
-        detector.detector.sam2_predictor.model.to("cuda")
+    if args.use_lower_vram:
+        threshold_mem = 2 * 1024 * 1024 * 1024 
+    elif args.use_low_vram:
+        threshold_mem = 8 * 1024 * 1024 * 1024 
+    forward_hook_manager = ForwardHookManager(threshold_mem, args.use_lower_vram)
+    model.pipe.transformer = forward_hook_manager.register(model.pipe.transformer)
+    model.pipe.text_encoder = forward_hook_manager.register(model.pipe.text_encoder)
+    model.pipe.vae = forward_hook_manager.register(model.pipe.vae)
+    model.pipe.text_encoder_2 = forward_hook_manager.register(model.pipe.text_encoder_2)
+    model.pipe.clip_model = forward_hook_manager.register(model.pipe.clip_model)
+    for i in range(len(model.pipe.modulation_adapters)):
+        model.pipe.modulation_adapters[i] = forward_hook_manager.register(model.pipe.modulation_adapters[i])
+    forward_hook_manager.register(face_model.detector)
+    forward_hook_manager.register(face_model.model)
+    forward_hook_manager.register(detector.detector.florence2_model)
+    forward_hook_manager.register(detector.detector.sam2_predictor.model)
+else:
+    forward_hook_manager = None
+    model.pipe=model.pipe.to("cuda")
+    for i in range(len(model.pipe.modulation_adapters)):
+        model.pipe.modulation_adapters[i] = model.pipe.modulation_adapters[i].to("cuda")
+    model.pipe=model.pipe.to("cuda")
+    face_model.detector.to("cuda")
+    face_model.model.to("cuda")
+    detector.detector.florence2_model.to("cuda")
+    detector.detector.sam2_predictor.model.to("cuda")
 
 vae_skip_iter = None
 attn_skip_iter = 0
