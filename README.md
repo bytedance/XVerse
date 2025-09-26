@@ -19,7 +19,7 @@
 </p>
 
 ## 🔥 News
-- **2025.9.19**: Congratulations! XVerse has been accepted by NIPS 2025!
+- **2025.9.19**: Congratulations! XVerse has been accepted by NeurIPS 2025!
 - **2025.7.18**: Supports quantized diffusion models, and add group offload to run the XVerse model in 16GB VRAM.
 - **2025.7.10**: Release huggingface space demo.
 - **2025.7.8**: Supports low VRAM inference, can run the XVerse model in 24GB VRAM.
