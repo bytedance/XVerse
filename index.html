@@ -475,7 +475,7 @@
         <hr>
 
         <h2>🔍 Method</h2>
-        <p>The core of XVerse is to achieve consistent control over multiple subject identities and semantic attributes by learning offsets in the text flow modulation mechanism of Diffusion Transformers (DiT). Our method consists of four key components:</p>
+        <p>The core of XVerse is to achieve consistent control over multiple subject identities and semantic attributes by learning offsets in the text modulation mechanism of Diffusion Transformers (DiT). Our method consists of four key components:</p>
         
         <div class="image-container">
             <img src="structure.png" alt="XVerse Framework" width="100%">
@@ -487,9 +487,9 @@
             <div class="method-card">
                 <h3><span style="color: #3366cc;">1.</span> T-Mod Adapter</h3>
                 <ul class="list-unstyled">
-                    <li style="margin-bottom: 10px;">🔹 Employs a <strong>perceiver resampler</strong> as the text flow modulation adapter</li>
+                    <li style="margin-bottom: 10px;">🔹 Employs a <strong>perceiver resampler</strong> as the text modulation adapter</li>
                     <li style="margin-bottom: 10px;">🔹 Combines <strong>CLIP-encoded image features</strong> with text prompt features to generate cross offsets</li>
-                    <li style="margin-bottom: 10px;">🔹 Implements <strong>token-specific text flow modulation</strong>, enabling the model to precisely control multiple subjects</li>
+                    <li style="margin-bottom: 10px;">🔹 Implements <strong>token-specific text-stream modulation</strong>, enabling the model to precisely control multiple subjects</li>
                 </ul>
                 <div class="highlight">
                     T-Mod(I_ref, T) → Δ_shared, {Δ_block_i}
@@ -499,9 +499,9 @@
             
             <!-- Second component -->
             <div class="method-card">
-                <h3><span style="color: #3366cc;">2.</span> Text Flow Modulation Mechanism</h3>
+                <h3><span style="color: #3366cc;">2.</span> Text-stream Modulation Mechanism</h3>
                 <ul class="list-unstyled">
-                    <li style="margin-bottom: 10px;">🔹 Transforms reference images into text flow modulation offsets</li>
+                    <li style="margin-bottom: 10px;">🔹 Transforms reference images into text-stream modulation offsets</li>
                     <li style="margin-bottom: 10px;">🔹 Adds offsets to the corresponding token embeddings injected into the model</li>
                     <li style="margin-bottom: 10px;">🔹 Adjusts original modulation parameters (scaling and shift parameters) to achieve precise control</li>
                 </ul>
@@ -549,7 +549,8 @@
         
         <ul>
             <li>🔸 Utilizes <strong>Florence2</strong> for image description and phrase localization</li>
-            <li>🔸 Employs <strong>SAM2</strong> for precise face extraction</li>
+            <li>🔸 Employs <strong>LLMs</strong> for label filtering</li>
+            <li>🔸 Employs <strong>SAM2</strong> for precise face extraction and <strong>Facer</strong> for face extraction </li>
             <li>🔸 Constructs a high-quality training dataset containing multi-subject control</li>
         </ul>
 
@@ -630,7 +631,7 @@
         
         <div class="image-container">
             <img src="Quant_Compare.png" alt="Ablation Study Results" width="90%">
-            <p class="image-caption"><strong>Figure 7:</strong> <em>Demonstration of the effects of text flow modulation resampler and VAE-encoded image features</em></p>
+            <p class="image-caption"><strong>Figure 7:</strong> <em>Demonstration of the effects of text-stream modulation resampler and VAE-encoded image features</em></p>
         </div>
 
         <hr>
@@ -640,7 +641,7 @@
             <h3><em>Precise Control of Individual Subject Identity and Attributes</em></h3>
         </div>
         
-        <p>XVerse demonstrates exceptional capability in controlling single-subject identity and semantic attributes. By leveraging the text flow modulation mechanism, our model achieves:</p>
+        <p>XVerse demonstrates exceptional capability in controlling single-subject identity and semantic attributes. By leveraging the text-stream modulation mechanism, our model achieves:</p>
         
         <ul>
             <li>🔸 <strong>High fidelity identity preservation</strong> across diverse scenarios and contexts</li>
